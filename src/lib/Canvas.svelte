@@ -11,7 +11,7 @@
 
 	const raf = () => new Promise(requestAnimationFrame);
 
-	const randomBetween = (a, b) => Math.random() * (b - a) + a;
+	const random = (a, b) => Math.random() * (b - a) + a;
 
 	/** @type {HTMLCanvasElement}*/
 	let canvas;
@@ -22,8 +22,8 @@
 	function drawScene(balls) {
 		ctx.save();
 		ctx.scale(1, -1);
-		ctx.translate(0, -ctx.canvas.height);
-		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+		ctx.translate(0, -height);
+		ctx.clearRect(0, 0, width, height);
 		ctx.fillStyle = 'red';
 		for (let i = 0; i < balls.length; i += 6) {
 			const r = balls[i + 0];
@@ -121,15 +121,15 @@
 
 		let inputBalls = new Float32Array(new ArrayBuffer(BUFFER_SIZE));
 		for (let i = 0; i < NUM_BALLS; ++i) {
-			inputBalls[i * 6 + 0] = randomBetween(minRadius, maxRadius);
+			inputBalls[i * 6 + 0] = random(minRadius, maxRadius);
 			// inputBalls[i * 6 + 1] = 0; // padding
-			inputBalls[i * 6 + 2] = randomBetween(0, ctx.canvas.width); // position.x
-			inputBalls[i * 6 + 3] = randomBetween(0, ctx.canvas.height); // position.y
-			inputBalls[i * 6 + 4] = randomBetween(-100, 100); // velocity.x
-			inputBalls[i * 6 + 5] = randomBetween(-100, 100); // velocity.y
+			inputBalls[i * 6 + 2] = random(0, width); // position.x
+			inputBalls[i * 6 + 3] = random(0, height); // position.y
+			inputBalls[i * 6 + 4] = random(-100, 100); // velocity.x
+			inputBalls[i * 6 + 5] = random(-100, 100); // velocity.y
 		}
 
-		device.queue.writeBuffer(scene, 0, new Float32Array([ctx.canvas.width, ctx.canvas.height]));
+		device.queue.writeBuffer(scene, 0, new Float32Array([width, height]));
 
 		while (true) {
 			device.queue.writeBuffer(input, 0, inputBalls);
