@@ -9,14 +9,15 @@
 	const width = 500;
 	const height = 500;
 
-	const raf = () => new Promise(requestAnimationFrame);
-
 	const random = (a, b) => Math.random() * (b - a) + a;
 
 	/** @type {HTMLCanvasElement}*/
 	let canvas;
 	/** @type {CanvasRenderingContext2D}*/
 	let ctx;
+
+	/** @type {number}*/
+	let rafHandle;
 
 	/** @param {Float32Array} balls */
 	function drawScene(balls) {
@@ -131,7 +132,7 @@
 
 		device.queue.writeBuffer(scene, 0, new Float32Array([width, height]));
 
-		while (true) {
+		rafHandle = requestAnimationFrame(async function rafCallback() {
 			device.queue.writeBuffer(input, 0, inputBalls);
 
 			const commandEncoder = device.createCommandEncoder();
@@ -163,8 +164,9 @@
 
 			drawScene(outputBalls);
 			inputBalls = outputBalls;
-			await raf();
-		}
+			rafHandle = requestAnimationFrame(rafCallback);
+		});
+		return () => cancelAnimationFrame(rafHandle);
 	});
 </script>
 
