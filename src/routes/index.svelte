@@ -1,5 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
+	import shader from '$lib/shader.wgsl?raw';
 
 	onMount(async () => {
 		if (!navigator.gpu) throw Error('WebGPU not supported.');
@@ -10,14 +11,7 @@
 		const device = await adapter.requestDevice();
 		if (!device) throw Error('Couldn’t request WebGPU logical device.');
 
-		const module = device.createShaderModule({
-			code: `
-        @stage(compute) @workgroup_size(64)
-        fn main() {
-          // Pointless!
-        }
-      `
-		});
+		const module = device.createShaderModule({ code: shader });
 
 		const bindGroupLayout = device.createBindGroupLayout({
 			entries: [
