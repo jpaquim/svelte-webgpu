@@ -64,6 +64,11 @@
 					binding: 1,
 					visibility: GPUShaderStage.COMPUTE,
 					buffer: { type: 'storage' }
+				},
+				{
+					binding: 2,
+					visibility: GPUShaderStage.COMPUTE,
+					buffer: { type: 'read-only-storage' }
 				}
 			]
 		});
@@ -79,6 +84,11 @@
 		});
 
 		const BUFFER_SIZE = 1000;
+
+		const scene = device.createBuffer({
+			size: 2 * Float32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+		});
 
 		const input = device.createBuffer({
 			size: BUFFER_SIZE,
@@ -99,7 +109,8 @@
 			layout: bindGroupLayout,
 			entries: [
 				{ binding: 0, resource: { buffer: input } },
-				{ binding: 1, resource: { buffer: output } }
+				{ binding: 1, resource: { buffer: output } },
+				{ binding: 2, resource: { buffer: scene } }
 			]
 		});
 
@@ -113,6 +124,8 @@
 			inputBalls[i * 6 + 4] = randomBetween(-100, 100); // velocity.x
 			inputBalls[i * 6 + 5] = randomBetween(-100, 100); // velocity.y
 		}
+
+		device.queue.writeBuffer(scene, 0, new Float32Array([ctx.canvas.width, ctx.canvas.height]));
 
 		while (true) {
 			device.queue.writeBuffer(input, 0, inputBalls);
