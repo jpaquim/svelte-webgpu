@@ -4,8 +4,13 @@ struct Ball {
   velocity: vec2<f32>;
 }
 
+@group(0) @binding(0)
+var<storage, read> input: array<Ball>;
+
 @group(0) @binding(1)
 var<storage, write> output: array<Ball>;
+
+let TIME_STEP: f32 = 0.016;
 
 @stage(compute) @workgroup_size(64)
 fn main(
@@ -16,7 +21,6 @@ fn main(
   if (global_id.x >= num_balls) {
     return;
   }
-  output[global_id.x].radius = 999.;
-  output[global_id.x].position = vec2<f32>(global_id.xy);
-  output[global_id.x].velocity = vec2<f32>(local_id.xy);
+  output[global_id.x] = input[global_id.x];
+  output[global_id.x].position = input[global_id.x].position + input[global_id.x].velocity * TIME_STEP;
 }
