@@ -2,12 +2,13 @@
 	import { onMount } from 'svelte';
 	import shader from './shader.wgsl?raw';
 
-	const NUM_BALLS = 1000;
-	const BUFFER_SIZE = NUM_BALLS * 6 * Float32Array.BYTES_PER_ELEMENT;
-	const minRadius = 2;
-	const maxRadius = 10;
-	const width = 500;
-	const height = 500;
+	export let NUM_BALLS = 1000;
+	export let minRadius = 2;
+	export let maxRadius = 10;
+	export let width = 500;
+	export let height = 500;
+
+	$: BUFFER_SIZE = NUM_BALLS * 6 * Float32Array.BYTES_PER_ELEMENT;
 
 	const random = (a, b) => Math.random() * (b - a) + a;
 
@@ -16,8 +17,21 @@
 	/** @type {CanvasRenderingContext2D}*/
 	let ctx;
 
+	/** @type {GPUDevice}*/
+	let device;
+	/** @type {GPUComputePipeline}*/
+	let pipeline;
+	/** @type {GPUBindGroupLayout}*/
+	let bindGroupLayout;
+	/** @type {GPUBuffer}*/
+	let scene;
+
 	/** @type {number}*/
 	let rafHandle;
+
+	function cancelRaf() {
+		cancelAnimationFrame(rafHandle);
+	}
 
 	/** @param {Float32Array} balls */
 	function drawScene(balls) {
@@ -56,12 +70,12 @@
 		const adapter = await navigator.gpu.requestAdapter();
 		if (!adapter) throw Error('Couldn’t request WebGPU adapter.');
 
-		const device = await adapter.requestDevice();
+		device = await adapter.requestDevice();
 		if (!device) throw Error('Couldn’t request WebGPU logical device.');
 
 		const module = device.createShaderModule({ code: shader });
 
-		const bindGroupLayout = device.createBindGroupLayout({
+		bindGroupLayout = device.createBindGroupLayout({
 			entries: [
 				{
 					binding: 0,
@@ -81,7 +95,7 @@
 			]
 		});
 
-		const pipeline = device.createComputePipeline({
+		pipeline = device.createComputePipeline({
 			layout: device.createPipelineLayout({
 				bindGroupLayouts: [bindGroupLayout]
 			}),
@@ -91,11 +105,17 @@
 			}
 		});
 
-		const scene = device.createBuffer({
+		scene = device.createBuffer({
 			size: 2 * Float32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
 		});
 
+		return cancelRaf;
+	});
+
+	$: device?.queue.writeBuffer(scene, 0, new Float32Array([width, height]));
+
+	$: if (device) {
 		const input = device.createBuffer({
 			size: BUFFER_SIZE,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
@@ -130,8 +150,8 @@
 			inputBalls[i * 6 + 5] = random(-100, 100); // velocity.y
 		}
 
-		device.queue.writeBuffer(scene, 0, new Float32Array([width, height]));
-
+		// cancel any current raf, indirection to avoid reactivity with rafHandle
+		cancelRaf();
 		rafHandle = requestAnimationFrame(async function rafCallback() {
 			device.queue.writeBuffer(input, 0, inputBalls);
 
@@ -166,8 +186,7 @@
 			inputBalls = outputBalls;
 			rafHandle = requestAnimationFrame(rafCallback);
 		});
-		return () => cancelAnimationFrame(rafHandle);
-	});
+	}
 </script>
 
 <canvas {width} {height} bind:this={canvas} />
