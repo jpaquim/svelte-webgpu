@@ -1,5 +1,6 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
 	import shader from './shader.wgsl?raw';
 
 	export let NUM_BALLS = 1000;
@@ -10,6 +11,8 @@
 
 	$: BUFFER_SIZE = NUM_BALLS * 6 * Float32Array.BYTES_PER_ELEMENT;
 
+	/** @param a {number}
+	 * @param b {number} */
 	const random = (a, b) => Math.random() * (b - a) + a;
 
 	/** @type {HTMLCanvasElement}*/
@@ -109,8 +112,10 @@
 			size: 2 * Float32Array.BYTES_PER_ELEMENT,
 			usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
 		});
+	});
 
-		return cancelRaf;
+	onDestroy(() => {
+		browser && cancelRaf();
 	});
 
 	$: device?.queue.writeBuffer(scene, 0, new Float32Array([width, height]));
