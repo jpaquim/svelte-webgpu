@@ -159,8 +159,9 @@
 			const passEncoder = commandEncoder.beginComputePass();
 			passEncoder.setPipeline(pipeline);
 			passEncoder.setBindGroup(0, bindGroup);
-			passEncoder.dispatch(Math.ceil(BUFFER_SIZE / 64));
-			passEncoder.end();
+			passEncoder.dispatchWorkgroups(Math.ceil(BUFFER_SIZE / 64));
+			passEncoder.endPass();
+			// passEncoder.end();
 			commandEncoder.copyBufferToBuffer(
 				output,
 				0, // source offset

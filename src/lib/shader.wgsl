@@ -1,27 +1,27 @@
 struct Ball {
-  radius: f32;
-  position: vec2<f32>;
-  velocity: vec2<f32>;
+  radius: f32,
+  position: vec2<f32>,
+  velocity: vec2<f32>,
 }
 
 @group(0) @binding(0)
 var<storage, read> input: array<Ball>;
 
 @group(0) @binding(1)
-var<storage, write> output: array<Ball>;
+var<storage, read_write> output: array<Ball>;
 
 struct Scene {
-  width: f32;
-  height: f32;
+  width: f32,
+  height: f32,
 }
 
 @group(0) @binding(2)
 var<storage, read> scene: Scene;
 
-let PI: f32 = 3.14159;
-let TIME_STEP: f32 = 0.016;
+const PI: f32 = 3.14159;
+const TIME_STEP: f32 = 0.016;
 
-@stage(compute) @workgroup_size(64)
+@compute @workgroup_size(64)
 fn main(
   @builtin(global_invocation_id) global_id: vec3<u32>,
 ) {
@@ -31,10 +31,8 @@ fn main(
   }
   var src_ball = input[global_id.x];
   let dst_ball = &output[global_id.x];
-
   (*dst_ball) = src_ball;
-
-  // ball/ball collision
+  // Ball/Ball collision
   for (var i = 0u; i < num_balls; i = i + 1u) {
     if (i == global_id.x) {
       continue;
@@ -47,16 +45,16 @@ fn main(
     }
     let overlap = src_ball.radius + other_ball.radius - distance;
     (*dst_ball).position = src_ball.position + normalize(n) * overlap/2.;
-
+    // Details on the physics here:
+    // https://physics.stackexchange.com/questions/599278/how-can-i-calculate-the-final-velocities-of-two-spheres-after-an-elastic-collisi
     let src_mass = pow(src_ball.radius, 2.0) * PI;
     let other_mass = pow(other_ball.radius, 2.0) * PI;
     let c = 2. * dot(n, (other_ball.velocity - src_ball.velocity)) / (dot(n, n) * (1. / src_mass + 1. / other_mass));
     (*dst_ball).velocity = src_ball.velocity + c / src_mass * n;
   }
-
+  // Apply velocity
   (*dst_ball).position = (*dst_ball).position + (*dst_ball).velocity * TIME_STEP;
-
-  // ball/wall collision
+  // Ball/Wall collision
   if ((*dst_ball).position.x - (*dst_ball).radius < 0.) {
     (*dst_ball).position.x = (*dst_ball).radius;
     (*dst_ball).velocity.x = -(*dst_ball).velocity.x;
