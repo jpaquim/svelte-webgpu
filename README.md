@@ -1,38 +1,53 @@
-# create-svelte
+# svelte-webgpu
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+Play here: https://svelte-webgpu.vercel.app
 
-## Creating a project
+Based on the raw WebGPU examples in the [references](#references).
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Svelte port
+
+Built using [SvelteKit](https://kit.svelte.dev).
+
+## Building svelte-knobby submodule
+
+Currently using my fork of [svelte-knobby](https://github.com/jpaquim/svelte-knobby) while waiting for [this upstream PR](https://github.com/Rich-Harris/svelte-knobby/pull/29) to be integrated.
 
 ```bash
-# create a new project in the current directory
-npm create svelte@latest
+git submodule update --init
+```
 
-# create a new project in my-app
-npm create svelte@latest my-app
+```bash
+pushd packages/svelte-knobby && npm i && npm run build && npm run package; popd
 ```
 
 ## Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Install dependencies with `pnpm i`, start a development server:
 
 ```bash
-npm run dev
+pnpm dev
 
 # or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm dev --open
 ```
 
 ## Building
 
-To create a production version of your app:
+To create a production version of the app:
 
 ```bash
-npm run build
+pnpm build
 ```
 
-You can preview the production build with `npm run preview`.
+You can preview the production build with `pnpm preview`.
 
 > To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+
+## References
+
+- Article by Surma: [WebGPU — All of the cores, none of the canvas](https://surma.dev/things/webgpu/index.html), source [here](https://github.com/surma/surma.dev/tree/master/static/things/webgpu)
+- Article by Alain Galvan: [Raw WebGPU](https://alain.xyz/blog/raw-webgpu), source [here](https://github.com/alaingalvan/webgpu-seed)
+
+## License
+
+The code is available under the [MIT license](LICENSE)
