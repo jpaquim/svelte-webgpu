@@ -156,6 +156,7 @@
 		passEncoder.setPipeline(pipeline);
 		passEncoder.setViewport(0, 0, canvas.width, canvas.height, 0, 1);
 		passEncoder.setScissorRect(0, 0, canvas.width, canvas.height);
+		passEncoder.setBindGroup(0, uniformBindGroup);
 		passEncoder.setVertexBuffer(0, positionBuffer);
 		passEncoder.setVertexBuffer(1, colorBuffer);
 		passEncoder.setIndexBuffer(indexBuffer, 'uint16');
@@ -166,11 +167,34 @@
 		queue.submit([commandEncoder.finish()]);
 	}
 
+	const start = Date.now();
+
+	const period = 6; // seconds
+
+	/** @param {number} t
+	 * @return {Float32Array} */
+	function rotation(t) {
+		const theta = (2 * Math.PI * (t - start)) / 1000 / period;
+		return new Float32Array([
+			Math.cos(theta),
+			Math.sin(theta),
+			0,
+			0,
+			-Math.sin(theta),
+			Math.cos(theta),
+			0,
+			0
+		]);
+	}
+
 	/** @type {number} */
 	let rafHandle;
 
 	function render() {
-		if (!context) throw new Error("Couldn't render, no context");
+		if (!context || !queue) throw new Error("Couldn't render, no context");
+
+		const matrix = rotation(Date.now());
+		queue.writeBuffer(uniformBuffer, 0, matrix.buffer, matrix.byteOffset, matrix.byteLength);
 
 		colorTexture = context.getCurrentTexture();
 		colorTextureView = colorTexture.createView();
@@ -230,35 +254,32 @@
 		const fsmDesc = { code: fragShaderCode };
 		fragModule = device.createShaderModule(fsmDesc);
 
-		// uniformBuffer = createBuffer(uniformData, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST);
+		uniformBuffer = createBuffer(uniformData, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST);
 
-		// uniformBindGroupLayout = device.createBindGroupLayout({
-		// 	entries: [
-		// 		{
-		// 			binding: 0,
-		// 			visibility: GPUShaderStage.VERTEX,
-		// 			buffer: {}
-		// 		}
-		// 	]
-		// });
+		uniformBindGroupLayout = device.createBindGroupLayout({
+			entries: [
+				{
+					binding: 0,
+					visibility: GPUShaderStage.VERTEX,
+					buffer: {}
+				}
+			]
+		});
 
-		// uniformBindGroup = device.createBindGroup({
-		// 	layout: uniformBindGroupLayout,
-		// 	entries: [
-		// 		{
-		// 			binding: 0,
-		// 			resource: {
-		// 				buffer: uniformBuffer
-		// 			}
-		// 		}
-		// 	]
-		// });
-
-		// /** @type {GPUPipelineLayoutDescriptor} */
-		// const pipelineLayoutDesc = { bindGroupLayouts: [uniformBindGroupLayout] };
+		uniformBindGroup = device.createBindGroup({
+			layout: uniformBindGroupLayout,
+			entries: [
+				{
+					binding: 0,
+					resource: {
+						buffer: uniformBuffer
+					}
+				}
+			]
+		});
 
 		/** @type {GPUPipelineLayoutDescriptor} */
-		const pipelineLayoutDesc = { bindGroupLayouts: [] };
+		const pipelineLayoutDesc = { bindGroupLayouts: [uniformBindGroupLayout] };
 		const layout = device.createPipelineLayout(pipelineLayoutDesc);
 
 		/** @type {GPUVertexAttribute} */
