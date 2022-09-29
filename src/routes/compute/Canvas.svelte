@@ -165,8 +165,8 @@
 			passEncoder.setPipeline(pipeline);
 			passEncoder.setBindGroup(0, bindGroup);
 			passEncoder.dispatchWorkgroups(Math.ceil(BUFFER_SIZE / 64));
-			passEncoder.endPass();
-			// passEncoder.end();
+			passEncoder.end();
+			// passEncoder.endPass();
 			commandEncoder.copyBufferToBuffer(
 				output,
 				0, // source offset

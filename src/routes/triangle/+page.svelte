@@ -125,8 +125,8 @@
 		/** @type {GPURenderPassColorAttachment} */
 		const colorAttachment = {
 			view: colorTextureView,
-			// clearValue: { r: 0, g: 0, b: 0, a: 1 },
-			loadValue: { r: 0, g: 0, b: 0, a: 1 },
+			clearValue: { r: 0, g: 0, b: 0, a: 1 },
+			// loadValue: { r: 0, g: 0, b: 0, a: 1 },
 			loadOp: 'clear',
 			storeOp: 'store'
 		};
@@ -134,12 +134,12 @@
 		/** @type {GPURenderPassDepthStencilAttachment} */
 		const depthAttachment = {
 			view: depthTextureView,
-			// depthClearValue: 1,
-			depthLoadValue: 1,
+			depthClearValue: 1,
+			// depthLoadValue: 1,
 			depthLoadOp: 'clear',
 			depthStoreOp: 'store',
-			// stencilClearValue: 0,
-			stencilLoadValue: 0,
+			stencilClearValue: 0,
+			// stencilLoadValue: 0,
 			stencilLoadOp: 'clear',
 			stencilStoreOp: 'store'
 		};
@@ -160,8 +160,8 @@
 		passEncoder.setVertexBuffer(1, colorBuffer);
 		passEncoder.setIndexBuffer(indexBuffer, 'uint16');
 		passEncoder.drawIndexed(3);
-		// passEncoder.end();
-		passEncoder.endPass();
+		passEncoder.end();
+		// passEncoder.endPass();
 
 		queue.submit([commandEncoder.finish()]);
 	}
